@@ -1,0 +1,265 @@
+
+
+table1_mc, vars (age cat \ gender cat \ ethnicity cat \ medstatus cat \ medschoolyrs contn\ doctoryrs contn\ obligationcheck cat \ sharedcheck cat\ controlcheck cat\ smoking cat\ livingwithsmoke cat  \ frame cat\ ) format (%8.2f) onecol saving(descriptive.xlsx, sheet(overall, replace))
+
+table1_mc, vars (age cat \ gender cat \ ethnicity cat \ medstatus cat \ medschoolyrs contn\ doctoryrs contn\ obligationcheck cat \ sharedcheck cat\ controlcheck cat\ smoking cat\ livingwithsmoke cat  \ frame cat\ ) by(frame) format (%8.2f) onecol saving(descriptive.xlsx, sheet(framing, replace))
+
+table1_mc, vars (q24_1 cat\ q24_2 cat\ q24_3 cat \ q24_5 cat \ q24_6 cat \ attitude_amal contn \ subjective_amal contn \ pbc_amal contn\ intention_amal contn\ ) format (%8.2f) onecol saving(descriptive.xlsx, sheet(secondary, replace))
+
+table1_mc, vars (q24_1 cat\ q24_2 cat\ q24_3 cat \ q24_5 cat \ q24_6 cat \ attitude_amal contn \ subjective_amal contn \ pbc_amal contn\ intention_amal contn\ ) by(frame) format (%8.2f) onecol saving(descriptive.xlsx, sheet(secondary_frame, replace))
+
+table1_mc, vars (q24_1 cat\ q24_2 cat\ q24_3 cat \ q24_5 cat \ q24_6 cat \ attitude_amal contn \ subjective_amal contn \ pbc_amal contn\ intention_amal contn\ ) by(medstatus) format (%8.2f) onecol saving(descriptive.xlsx, sheet(medstatus, replace))
+
+table1_mc, vars (q24_1 cat\ q24_2 cat\ q24_3 cat \ q24_5 cat \ q24_6 cat \ attitude_amal contn \ subjective_amal contn \ pbc_amal contn\ intention_amal contn\ ) by(gender) format (%8.2f) onecol saving(descriptive.xlsx, sheet(gender, replace))
+
+table1_mc, vars (q24_1 cat\ q24_2 cat\ q24_3 cat \ q24_5 cat \ q24_6 cat \ attitude_amal contn \ subjective_amal contn \ pbc_amal contn\ intention_amal contn\ ) by(ethnicity) format (%8.2f) onecol saving(descriptive.xlsx, sheet(ethnicity, replace))
+
+cap drop desireaverage
+gen desireaverage = .
+replace desireaverage = ((desire1 + desire2 + desire3)/ 3) 
+replace desireaverage =  ((desire4 + desire5 + desire6)/ 3) if desireaverage==.
+replace desireaverage =  ((desire7 + desire8 + desire9)/ 3) if desireaverage==.
+
+sum desireaverage, d
+
+cap drop dutyaverage
+gen dutyaverage = .
+replace dutyaverage = ((duty1 + duty2 + duty3)/ 3) 
+replace dutyaverage =  ((duty4 + duty5 + duty6)/ 3) if dutyaverage==.
+replace dutyaverage =  ((duty7 + duty8 + duty9)/ 3) if dutyaverage==.
+
+sum dutyaverage, d
+
+cap drop intentionaverage
+gen intentionaverage = .
+replace intentionaverage = ((intention1 + intention2 + intention3)/ 3) 
+replace intentionaverage =  ((intention4 + intention5 + intention6)/ 3) if intentionaverage==.
+replace intentionaverage =  ((intention7 + intention8 + intention9)/ 3) if intentionaverage==.
+
+sum intentionaverage, d
+
+regress desireaverage  i.frame i.age i.gender i.ethnicity i.medstatus i.smoking i.livingwithsmoke
+regress dutyaverage  i.frame i.age i.gender i.ethnicity i.medstatus i.smoking i.livingwithsmoke
+regress intentionaverage i.frame i.age i.gender i.ethnicity i.medstatus i.smoking i.livingwithsmoke
+
+spearman q24_1 q24_2 q24_3 q24_4 q24_5 q24_6
+
+regress attitude_amal i.frame i.age i.gender i.ethnicity i.medstatus i.smoking i.livingwithsmoke
+regress subjective_amal i.frame i.age i.gender i.ethnicity i.medstatus i.smoking i.livingwithsmoke
+regress pbc_amal i.frame i.age i.gender i.ethnicity i.medstatus i.smoking i.livingwithsmoke
+regress intention_amal i.frame i.age i.gender i.ethnicity i.medstatus i.smoking i.livingwithsmoke
+
+sum attitude_amal, d
+sum subjective_amal, d
+sum pbc_amal, d
+sum intention_amal, d
+
+* let's look at regrouping things on normal level
+
+cap drop groupedmedstatus
+gen groupedmedstatus = medstatus
+replace groupedmedstatus = 1 if medstatus == 3
+
+cap drop groupedethnicity
+gen groupedethnicity = . 
+replace groupedethnicity = 0 if (ethnicity == 1 | ethnicity == 2 | ethnicity == 3 | ethnicity == 4)
+replace groupedethnicity = 1 if (ethnicity == 10 | ethnicity == 11 | ethnicity == 12 | ethnicity == 13 | ethnicity == 14)
+replace groupedethnicity = 2 if (ethnicity == 16 | ethnicity == 17 | ethnicity == 18  )
+replace groupedethnicity = 3 if (ethnicity == 6 | ethnicity == 7 | ethnicity == 8  | ethnicity == 19 | ethnicity == 20)
+replace groupedethnicity = 3 if groupedethnicity ==.
+label variable groupedethnicity "ethnicity grouped"
+label define groupedethnicity 0 "White" 1 "Asian" 2 "Black" 3 "Other"
+label values groupedethnicity groupedethnicity 
+
+
+cap drop groupedgender
+gen groupedgender = gender
+replace groupedgender = 3 if gender == 4
+label values groupedgender gender
+label values groupedmedstatus medstatus
+
+cap drop groupedage
+gen groupedage = .
+replace groupedage = 0 if(age == 1| age  == 2  | age ==3 )
+replace groupedage =1 if groupedage ==. 
+label variable groupedage " age grouped"
+label define groupedage 0 "under 45" 1 "over 45"
+label values groupedage groupedage
+
+ 
+regress desireaverage  i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+regress dutyaverage  i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+regress intentionaverage  i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+
+
+regress attitude_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+regress subjective_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+regress pbc_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+regress intention_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+
+
+bysort groupedmedstatus : regress desireaverage i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke  
+bysort groupedmedstatus : regress dutyaverage  i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke  
+bysort groupedmedstatus : regress intentionaverage  i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke  
+
+bysort groupedmedstatus: regress attitude_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+bysort groupedmedstatus: regress subjective_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+bysort groupedmedstatus: regress pbc_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+bysort groupedmedstatus: regress intention_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+
+bysort groupedmedstatus:sum attitude_amal, d
+bysort groupedmedstatus:sum subjective_amal, d
+bysort groupedmedstatus:sum pbc_amal, d
+bysort groupedmedstatus:sum intention_amal, d
+
+
+drop if obligationcheck == 0
+drop if sharedcheck == 0
+drop if controlcheck == 0
+
+*sensitivity removing those who failed the checks
+
+regress desireaverage  i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke 
+regress dutyaverage  i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke 
+regress intentionaverage  i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke 
+
+regress attitude_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+regress subjective_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+regress pbc_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+regress intention_amal i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke
+
+cap drop groupedmedstatus
+gen groupedmedstatus = medstatus
+replace groupedmedstatus = 1 if medstatus == 3
+
+cap drop groupedethnicity
+gen groupedethnicity = . 
+replace groupedethnicity = 0 if (ethnicity == 1 | ethnicity == 2 | ethnicity == 3 | ethnicity == 4)
+replace groupedethnicity = 1 if (ethnicity == 10 | ethnicity == 11 | ethnicity == 12 | ethnicity == 13 | ethnicity == 14)
+replace groupedethnicity = 2 if (ethnicity == 16 | ethnicity == 17 | ethnicity == 18  )
+replace groupedethnicity = 3 if (ethnicity == 6 | ethnicity == 7 | ethnicity == 8  | ethnicity == 19 | ethnicity == 20)
+replace groupedethnicity = 3 if groupedethnicity ==.
+label variable groupedethnicity "ethnicity grouped"
+label define groupedethnicity 0 "White" 1 "Asian" 2 "Black" 3 "Other"
+label values groupedethnicity groupedethnicity 
+
+cap drop groupedgender
+gen groupedgender = gender
+replace groupedgender = 3 if gender == 4
+label values groupedgender gender
+label values groupedmedstatus medstatus
+
+cap drop groupedage
+gen groupedage = .
+replace groupedage = 0 if(age == 1| age  == 2  | age ==3 )
+replace groupedage =1 if groupedage ==. 
+label variable groupedage " age grouped"
+label define groupedage 0 "under 45" 1 "over 45"
+label values groupedage groupedage
+
+ 
+tab gender, m
+
+sum desire, d
+sum duty, d 
+sum intention, d
+
+
+cap drop bdesire 
+cap drop bduty
+cap drop bintention
+
+gen bdesire = desire
+replace bdesire = 0 if (bdesire == 1 |bdesire == 2 |bdesire == 3)
+replace bdesire = 1 if (bdesire == 4 |bdesire == 5)
+
+gen bduty = duty
+replace bduty = 0 if (bduty == 1 |bduty == 2 |bduty == 3)
+replace bduty = 1 if (bduty == 4 |bduty == 5)
+
+gen bintention = intention
+replace bintention = 0 if (bintention == 1 |bintention == 2 |bintention == 3)
+replace bintention = 1 if (bintention == 4 |bintention == 5)
+
+
+cap drop bbdesire 
+cap drop bbduty
+cap drop bbintention
+
+gen bbdesire = desire
+replace bbdesire = 0 if (bbdesire == 1 |bbdesire == 2 )
+replace bbdesire = 1 if (bbdesire == 4 |bbdesire == 5)
+replace bbdesire =. if bbdesire ==3
+
+gen bbduty = duty
+replace bbduty = 0 if (bbduty == 1 |bbduty == 2)
+replace bbduty = 1 if (bbduty == 4 |bbduty == 5)
+replace bbduty =. if bbduty ==3
+
+
+gen bbintention = intention
+replace bbintention = 0 if (bbintention == 1 |bbintention == 2)
+replace bbintention = 1 if (bbintention == 4 |bbintention == 5)
+replace bbintention =. if bbintention ==3
+
+
+tab bdesire
+tab bduty
+tab bintention
+
+corr bdesire bduty bintention
+corr desire duty intention
+
+bysort contextofscenario: logit bdesire i.frame i.groupedage i.groupedgender i.groupedethnicity i.smoking i.livingwithsmoke
+
+bysort contextofillness: logit bdesire i.frame i.groupedage i.groupedgender i.groupedethnicity i.smoking i.livingwithsmoke
+
+bysort contextofscenario: logit bduty i.frame i.groupedage i.groupedgender i.groupedethnicity i.smoking i.livingwithsmoke
+
+bysort contextofillness: logit bduty i.frame i.groupedage i.groupedgender i.groupedethnicity i.smoking i.livingwithsmoke
+
+bysort contextofscenario: logit bintention i.frame i.groupedage i.groupedgender i.groupedethnicity i.smoking i.livingwithsmoke
+
+bysort contextofillness: logit bintention i.frame i.groupedage i.groupedgender i.groupedethnicity i.smoking i.livingwithsmoke
+
+*mixed effect model without adjustment
+melogit bdesire i.frame  i.contextofillness i.contextofscenario || pid:, or
+
+
+melogit bduty i.frame i.contextofillness i.contextofscenario || pid:
+melogit bintention i.frame i.contextofillness i.contextofscenario || pid:
+melogit bdesire i.frame  i.contextofillness i.contextofscenario || pid:
+*adjusting for covariates
+melogit bdesire i.contextofillness i.contextofscenario i.age i.gender i.frame i.ethnicity i.medstatus i.smoking i.livingwithsmoke || pid:
+
+melogit bduty i.contextofillness i.contextofscenario i.age i.gender i.frame i.ethnicity i.medstatus i.smoking i.livingwithsmoke || pid:
+
+melogit bintention i.contextofillness i.contextofscenario i.age i.gender i.frame i.ethnicity i.medstatus i.smoking i.livingwithsmoke || pid:
+
+
+melogit bdesire i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke || pid:
+
+melogit bduty i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke || pid:
+
+melogit bintention i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke || pid:
+
+
+melogit bbdesire i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke|| pid:
+
+melogit bbduty i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke || pid:
+
+melogit bbintention i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmoke || pid:
+
+*split by groups
+
+bysort groupedmedstatus: melogit bbdesire i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.smoking i.livingwithsmoke|| pid:
+bysort groupedmedstatus: melogit bbduty i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.smoking i.livingwithsmoke || pid:
+bysort groupedmedstatus: melogit bbintention i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.smoking i.livingwithsmoke || pid:
+
+bysort groupedage: melogit bdesire i.contextofillness i.contextofscenario i.frame i.groupedage i.groupedgender i.groupedethnicity i.groupedmedstatus i.smoking i.livingwithsmok|| pid:
+
+
+
+
+
+
